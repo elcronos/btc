@@ -4,4 +4,4 @@ pub mod types;
 
 pub use loader::SkillLoader;
 pub use registry::SkillRegistry;
-pub use types::Skill;
+pub use types::{Skill, SkillSource};

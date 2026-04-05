@@ -52,6 +52,10 @@ notify-rust = "4"
 
 # Process management
 nix = { version = "0.29", features = ["signal", "process"] }
+colored = "2"
+
+# Home directory
+dirs = "5"
 
 # Cron
 tokio-cron-scheduler = "0.13"

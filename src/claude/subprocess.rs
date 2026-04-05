@@ -44,7 +44,9 @@ impl ClaudeProcess {
             .arg(prompt)
             .arg("--output-format")
             .arg("stream-json")
-            .arg("--bare");
+            .arg("--verbose")
+            .arg("--permission-mode")
+            .arg("bypassPermissions");
 
         if let Some(model) = opts.model {
             cmd.arg("--model").arg(model);

@@ -44,6 +44,10 @@ impl SetupWizard {
         HookInstaller::install(&self.project_dir)?;
         println!("[OK] Hook directory initialized.");
 
+        // Step 6: Write default skills
+        self.write_default_skills()?;
+        println!("[OK] Default skills written.");
+
         println!("\n=== Setup complete! ===");
         println!("Next steps:");
         println!("  btc new \"description of what to build\"");
@@ -67,6 +71,60 @@ impl SetupWizard {
 
         for sub in &subdirs {
             std::fs::create_dir_all(btc_dir.join(sub))?;
+        }
+
+        Ok(())
+    }
+
+    fn write_default_skills(&self) -> BtcResult<()> {
+        let skills_dir = self.project_dir.join(".btc").join("skills");
+
+        let skills = [
+            (
+                "refactor",
+                r#"---
+name: refactor
+description: Refactor code for clarity and maintainability
+triggers:
+  - refactor
+  - cleanup
+  - clean up
+---
+Analyze the codebase and identify areas that need refactoring. Focus on reducing complexity, improving naming, extracting reusable functions, and eliminating duplication. Make changes incrementally and verify each step compiles.
+"#,
+            ),
+            (
+                "test",
+                r#"---
+name: test
+description: Generate comprehensive test coverage
+triggers:
+  - test
+  - coverage
+  - testing
+---
+Analyze the codebase and write comprehensive tests. Cover happy paths, edge cases, and error conditions. Use the project's existing test framework and conventions. Run tests after writing to verify they pass.
+"#,
+            ),
+            (
+                "review",
+                r#"---
+name: review
+description: Code review with security and quality focus
+triggers:
+  - review
+  - audit
+---
+Review the codebase for code quality, security vulnerabilities, performance issues, and best practices. Provide actionable feedback with specific file and line references. Check for OWASP top 10, proper error handling, and input validation.
+"#,
+            ),
+        ];
+
+        for (name, content) in &skills {
+            let path = skills_dir.join(format!("{}.md", name));
+            if !path.exists() {
+                std::fs::write(&path, content)?;
+            }
         }
 
         Ok(())

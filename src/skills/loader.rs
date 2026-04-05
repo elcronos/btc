@@ -62,6 +62,7 @@ impl SkillLoader {
             content,
             allowed_tools: fm.allowed_tools,
             timeout_secs: fm.timeout_secs,
+            source: super::types::SkillSource::default(),
         })
     }
 }
