@@ -1,93 +1,258 @@
 # BTC — Build Things with Claude
 
-A Rust CLI that orchestrates Claude Code as a multi-agent execution engine with **visual QA**, **sandboxed execution**, **remote control from your phone**, and the ability to **always ship the best version, not the latest one**.
+A Rust CLI that orchestrates [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as a multi-agent execution engine. Describe what you want, BTC interviews you, plans the work, and executes it — all from one command.
 
 ```
-btc setup                              # Initialize project
-btc new "2D puzzle game with 5 levels" # Deep interview → crystal-clear spec
-btc plan --consensus                   # Planner/Architect/Critic agree on a DAG
-btc run                                # Multi-agent execution with visual QA
-btc status                             # Check from terminal or Telegram
+btc new "a portfolio website with blog and contact form"
 ```
 
-## The Problem
+That single command runs the full pipeline: **deep interview** → **DAG planning** → **multi-agent execution**.
 
-Current AI coding tools verify that code **compiles and tests pass** — but never check if the output **actually looks right**. You can ship a page with broken layouts, misaligned components, and inconsistent styles across views, and every quality gate will say "all green."
+## Interactive Mode
 
-BTC fixes this with a **scored checkpoint loop**:
-
-```
-execute → screenshot → score (0-100) → compare with previous best
-    ↓                                        ↓
- checkpoint (git commit)              score dropped? → rollback to best
-    ↓
- always exit with the highest-scoring state
-```
-
-This means BTC ships the **best version**, not the latest. If iteration 3 scored 94% but iteration 5 scored 81%, BTC rolls back to iteration 3.
-
-## What Makes BTC Different
-
-### vs. Claude Code (vanilla)
-Claude Code is the brain. BTC is the body. Claude Code runs one agent at a time with no visual verification, no sandboxing by default, and no way to monitor from your phone. BTC wraps Claude Code to add multi-agent DAG execution, visual QA, sandbox enforcement, and remote control — while using Claude Code for all AI reasoning.
-
-### vs. oh-my-claudecode (OMC)
-OMC adds skills, hooks, and orchestration modes (autopilot, ralph, ultrawork) to Claude Code — and it's excellent. But its quality gates are binary: tests pass or fail. BTC's key insight came from analyzing OMC's `visual-verdict` skill and `game-art-director` skill: the patterns work, but they're not wired into any automated loop. BTC makes visual verification **mandatory and automatic**, with gradient scoring instead of pass/fail.
-
-### vs. Cursor / Windsurf
-IDE-based tools give you AI inside an editor. BTC gives you AI as an **autonomous execution engine** you can start and walk away from. Check progress from Telegram while at lunch. No IDE required.
-
-### vs. Devin
-Devin runs in a cloud sandbox with a web UI. BTC runs **on your machine** with kernel-enforced sandboxing, a terminal TUI, and no cloud dependency. Your code never leaves your laptop.
-
-### vs. OpenClaw
-OpenClaw pioneered 24/7 agent operation with messaging control. BTC takes the same concept but adds **multi-agent orchestration**, **visual QA**, and **DAG-based parallel execution** — built in Rust for performance instead of Node.js.
-
-## Comparison Table
-
-| Feature | Claude Code | OMC | Cursor | Devin | OpenClaw | **BTC** |
-|---------|------------|-----|--------|-------|----------|---------|
-| Multi-agent orchestration | Limited | Yes (tmux) | Yes (worktrees) | Yes (cloud) | No | **Yes (DAG)** |
-| Visual QA (screenshot scoring) | No | No* | No | No | No | **Yes** |
-| Best-score rollback | No | No | No | No | No | **Yes** |
-| Sandboxed execution | Optional | No | Yes | Yes (cloud) | No | **Yes (kernel)** |
-| Remote control (phone) | No | No | No | Slack | Yes | **Yes** |
-| Cron/scheduled workflows | No | No | No | No | Limited | **Yes** |
-| TUI with agent views | No | No | N/A (IDE) | N/A (web) | No | **Yes** |
-| Open source | No | Yes | No | No | Yes | **Yes** |
-| Runtime | Node.js | Node.js | Electron | Cloud | Node.js | **Rust** |
-
-*OMC has a `visual-verdict` skill but it's manually invoked, not in any automated loop.
-
-## Architecture
+Running `btc` with no arguments launches the interactive workspace:
 
 ```
-btc (single 2.6MB Rust binary)
-├── Orchestrator (tokio async)
-│   ├── Skills (YAML frontmatter Markdown, OMC-compatible)
-│   ├── Hooks (PreToolUse, PostToolUse, session lifecycle)
-│   ├── Agent Supervisor (spawn, monitor, retry, graceful shutdown)
-│   └── DAG Executor (petgraph, parallel independent tasks)
-├── Visual QA
-│   ├── Headless browser screenshots
-│   ├── Claude Code vision scoring (0-100 per page)
-│   ├── Cross-page consistency checking
-│   └── Git checkpoint/rollback (best-score-wins)
-├── TUI (ratatui)
-│   ├── Grid view (≤4 agents)
-│   ├── Overview (>4 agents, table + detail)
-│   ├── Focus (single agent fullscreen)
-│   └── Topology (DAG progress)
-├── Sandbox (macOS sandbox-exec)
-│   ├── SBPL profile generation per project
-│   ├── Rust-side path validation (defense-in-depth)
-│   └── Configurable network policy
-├── Daemon (launchd)
-│   ├── Unix socket for local control
-│   ├── Telegram adapter (long polling)
-│   ├── Slack adapter (Socket Mode)
-│   └── Cron scheduler
-└── Setup wizard (Claude Code detection + configuration)
+  ██████╗ ████████╗ ██████╗
+  ██╔══██╗╚══██╔══╝██╔════╝
+  ██████╔╝   ██║   ██║
+  ██╔══██╗   ██║   ██║
+  ██████╔╝   ██║   ╚██████╗
+  ╚═════╝    ╚═╝    ╚═════╝
+
+  Build Things with Claude  v0.1.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Workflow
+────────────────────────────────────────────────────
+  /new <desc>        Full pipeline: interview → plan → run
+  /interview <desc>  Interview only (no auto-run)
+  /plan              Generate execution DAG from spec
+  /run [mode]        Execute plan (default/ralph/ultrawork)
+
+  Modes
+────────────────────────────────────────────────────
+  default            Sequential DAG execution
+  autopilot          Autonomous end-to-end
+  ralph              Loop with verification until done
+  ultrawork          Parallel high-throughput
+  deep-interview     Deep analysis before execution
+
+  Observe
+────────────────────────────────────────────────────
+  /status            Project overview (specs, plans, daemon)
+  /dash              Live TUI dashboard (during /run)
+  /skills            List skills (local + OMC + Claude)
+
+  System
+────────────────────────────────────────────────────
+  /workspace         Launch tmux multi-pane workspace
+  /setup             Initialize BTC in current project
+  /help              Show this menu
+  /quit              Exit BTC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+btc ❯
+```
+
+Type `/commands` to control BTC, or just type questions in plain text to chat with Claude.
+
+## Workspace Mode (tmux)
+
+Running `btc` outside tmux (or `btc workspace`) launches a 3-pane tmux workspace:
+
+```
+┌──── BTC Menu ────┬──── Claude Code ──────────┐
+│                  │                           │
+│  btc ❯ /new     │  claude (bypassPerms)     │
+│  btc ❯ /run     │  shared project dir       │
+│                  │                           │
+│                  ├──── Dashboard ────────────┤
+│                  │                           │
+│                  │  ⚡ BTC Dashboard         │
+│                  │  Overview│Grid│DAG│Costs  │
+│                  │                           │
+└──────────────────┴───────────────────────────┘
+```
+
+- **Left**: BTC interactive menu with `/commands`
+- **Right-top**: Live Claude Code instance with full permissions
+- **Right-bottom**: Real-time observability dashboard
+
+Switch panes with `Ctrl+B` then arrow keys. Zoom with `Ctrl+B z`.
+
+## The Pipeline
+
+### 1. Deep Interview (`btc new` or `/new`)
+
+Claude asks targeted Socratic questions to crystallize your requirements:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ⚡ BTC Deep Interview
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Project: a portfolio website with blog
+
+  ● Generating interview questions... done
+
+  Claude has some questions for you:
+────────────────────────────────────────────────────────────
+
+  1. Tech Stack & Hosting — Do you have a preferred tech stack?
+  → plain html/css, deploy to vercel
+
+  2. Core Service Offerings — What specific services should be highlighted?
+  → AI consulting, LLM integration, training workshops
+
+  ...
+
+  ● Generating your spec... done
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✓ Spec written to: .btc/specs/interview-20260405-140349.md
+  → Run btc plan to generate an execution plan.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### 2. Plan (`btc plan` or `/plan`)
+
+Generates a DAG (directed acyclic graph) of tasks from the spec:
+
+```
+────────────────────────────────────────────
+● Generating execution plan…
+✓ Plan saved: .btc/plans/plan-20260405-140402.json
+  Tasks: 6
+    · scaffold (Scaffold)
+    · backend (Code)
+    · frontend (Code)
+    · integration (Test)
+    · visual_qa (VisualQA)
+    · polish (Polish)
+
+  → Run btc run to execute this plan.
+────────────────────────────────────────────
+```
+
+### 3. Execute (`btc run` or `/run`)
+
+Each task is dispatched to a Claude Code agent that writes real files:
+
+```
+────────────────────────────────────────────
+● Executing plan…
+  → Starting task: scaffold
+  ✓ Completed: scaffold
+  → Starting task: backend
+  ✓ Completed: backend
+  → Starting task: frontend
+  ✓ Completed: frontend
+  → Starting task: integration
+  ✓ Completed: integration
+  → Starting task: visual_qa
+  ✓ Completed: visual_qa
+  → Starting task: polish
+  ✓ Completed: polish
+────────────────────────────────────────────
+✓ Execution complete
+  Completed: 6  Failed: 0  Time: 233.0s
+────────────────────────────────────────────
+```
+
+## Execution Modes
+
+BTC integrates [oh-my-claudecode](https://github.com/yeachan-heo/oh-my-claudecode) execution strategies:
+
+```bash
+btc run --mode ralph        # Loop with verification until done
+btc run --mode ultrawork    # Parallel high-throughput execution
+btc run --mode autopilot    # Autonomous end-to-end
+btc run --mode deep-interview  # Deep analysis before each task
+```
+
+Or from the interactive menu:
+```
+btc ❯ /run ralph
+  ⚡ Mode: ralph
+  ...
+```
+
+| Mode | Strategy |
+|------|----------|
+| `default` | Sequential DAG execution |
+| `autopilot` | Autonomous — no pauses, full decision-making |
+| `ralph` | Recursive loop — verify after each task, retry until passing |
+| `ultrawork` | Parallel — maximize throughput on independent tasks |
+| `deep-interview` | Analyze deeply before implementing each task |
+
+## Live Dashboard
+
+`btc dash` launches a real-time TUI dashboard with 4 tabs:
+
+```
+┌─────────────────── ⚡ BTC Dashboard ─────────────────────┐
+│ Overview │ Grid │ DAG │ Costs                            │
+├──────────────────────────────────────────────────────────┤
+│ #  ID         Status  Task                 Cost    Time  │
+│ 1  pid-12345  [RUN]   scaffold             $0.02   12s   │
+│ 2  pid-12346  [RUN]   backend              $0.05   8s    │
+│ 3  pid-12347  [OK]    frontend             $0.03   45s   │
+├──────────────────────────────────────────────────────────┤
+│ 1-4: tabs │ Tab: select │ Enter: focus │ q: quit        │
+│ Agents: 3  Running: 2  Cost: $0.10  Uptime: 45s         │
+└──────────────────────────────────────────────────────────┘
+```
+
+- **Overview**: Agent table with status, cost, duration
+- **Grid**: 2x2 agent panels for up to 4 agents
+- **DAG**: Task topology with progress gauge
+- **Costs**: Per-agent cost breakdown
+
+The dashboard scans for all running `claude` processes — it monitors agents across any BTC project.
+
+## Skills
+
+BTC loads skills from three sources:
+
+```
+btc ❯ /skills
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ⚡ Available Skills
+──────────────────────────────────────────────────
+  ● autopilot                [omc] Full autonomous execution
+  ● deep-interview           [omc] Socratic deep interview
+  ● ralph                    [omc] Loop until task completion
+  ● ultrawork                [omc] Parallel execution engine
+  ● refactor                 [local] Refactor code for clarity
+  ● test                     [local] Generate test coverage
+  ● review                   [local] Code review with security focus
+  ...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+| Source | Path | Badge |
+|--------|------|-------|
+| Local project | `.btc/skills/*.md` | `[local]` |
+| OMC plugins | `~/.claude/plugins/marketplaces/omc/skills/` | `[omc]` |
+| Claude user | `~/.claude/skills/` | `[claude]` |
+
+Local skills override OMC/Claude skills with the same name.
+
+## Project Status
+
+```
+btc ❯ /status
+
+────────────────────────────────────────────
+● Project Status
+  Initialized : yes
+  Specs       : 1
+  Plans       : 1
+  Skills      : 3
+  Daemon      : offline
+────────────────────────────────────────────
 ```
 
 ## Installation
@@ -96,12 +261,22 @@ btc (single 2.6MB Rust binary)
 - macOS (Apple Silicon or Intel)
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
 - Rust toolchain (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+- tmux (`brew install tmux`) — optional, for workspace mode
 
 ### From source
 ```bash
 git clone https://github.com/elcronos/btc.git
 cd btc
-cargo install --path .
+./install.sh
+```
+
+The install script builds a release binary, copies it to `~/.cargo/bin/`, and signs it for macOS.
+
+### Manual install
+```bash
+cargo build --release
+cp target/release/btc ~/.cargo/bin/btc
+codesign -s - --force ~/.cargo/bin/btc  # macOS only
 ```
 
 ### Verify
@@ -112,181 +287,132 @@ btc --version
 
 ## Quick Start
 
-### 1. Initialize a project
 ```bash
-mkdir my-game && cd my-game
-git init
-btc setup
+mkdir my-project && cd my-project
+btc setup                                    # Initialize
+btc new "a todo app with React and Express"  # Full pipeline
 ```
 
-This will:
-- Detect Claude Code and verify it's working
-- Create the `.btc/` directory structure
-- Add `.btc/` to `.gitignore` (safety: checkpoint rollback won't destroy state)
-- Write a default `config.toml`
-
-### 2. Define what to build
+Or step by step:
 ```bash
-btc new "2D browser puzzle game with 5 levels, pixel art style, particle effects"
+btc new "a todo app" --interview-only   # Just the interview
+btc plan                                # Generate DAG from spec
+btc run                                 # Execute with Claude Code
+btc run --mode ralph                    # Re-run with verification loop
 ```
 
-BTC runs a Socratic deep interview — asking targeted questions to expose hidden assumptions until ambiguity drops below 20%. Output: a crystal-clear spec in `.btc/specs/`.
+## CLI Reference
 
-### 3. Plan the execution
-```bash
-btc plan --consensus
+```
+Usage: btc [OPTIONS] <COMMAND>
+
+Commands:
+  new        Build something — runs interview → plan → run pipeline
+  setup      Initialize BTC in the current project
+  plan       Generate an execution plan from a spec
+  run        Execute a plan with multi-agent orchestration
+  dashboard  Open the TUI dashboard (alias: dash, tui)
+  skills     Manage available skills
+  workspace  Launch the multi-pane workspace (alias: ws)
+  daemon     Manage the background daemon
+  cron       Manage scheduled skill workflows
+  status     Show current status
+  debug      Debug utilities
 ```
 
-Three Claude Code agents (Planner, Architect, Critic) debate and agree on a DAG:
+### Key flags
+| Flag | Command | Description |
+|------|---------|-------------|
+| `--interview-only` | `new` | Only run the interview, don't auto-plan/run |
+| `--mode <mode>` | `new`, `run` | Execution mode: default/autopilot/ralph/ultrawork/deep-interview |
+| `--consensus` | `plan` | Use Planner/Architect/Critic consensus pipeline |
+| `--debug` | `run` | Show raw Claude Code NDJSON stream |
+| `--spec <path>` | `plan` | Use specific spec file instead of latest |
+| `--plan <path>` | `run` | Use specific plan file instead of latest |
+
+## Architecture
+
 ```
-scaffold ──┬── game_engine ──┬── ui_integration ── visual_qa ── polish
-            │                 │
-            └── assets ───────┘  (parallel)
+btc (Rust binary)
+├── Interview Runner          — Socratic Q&A via Claude Code
+├── DAG Planner               — Spec → task graph (petgraph)
+│   └── Consensus Pipeline    — Planner/Architect/Critic debate
+├── DAG Executor              — Dispatches tasks to Claude Code agents
+├── TUI Dashboard (ratatui)   — 4-tab observability (Overview/Grid/DAG/Costs)
+├── Workspace (tmux)          — 3-pane layout: Menu + Claude + Dashboard
+├── Skills Registry           — Loads from local + OMC + Claude sources
+├── Visual QA Pipeline        — Screenshot → score → checkpoint → rollback
+├── Sandbox (macOS)           — sandbox-exec with SBPL profiles
+├── Daemon (launchd)          — Background execution with Unix socket IPC
+├── Remote Control            — Telegram/Slack command routing
+└── Cron Scheduler            — Scheduled skill workflows
 ```
-
-### 4. Execute
-```bash
-btc run
-```
-
-The TUI launches with multi-tab agent views. Each agent runs sandboxed. After each component:
-- Headless browser captures screenshots of every route/view
-- Claude Code vision scores each screenshot (0-100)
-- Scores compared against previous best checkpoint
-- If regression detected: automatic git rollback to best state
-- Cross-page consistency check ensures visual harmony
-
-### 5. Monitor from your phone (optional)
-```bash
-btc daemon start
-# Configure Telegram: btc daemon setup
-```
-
-From Telegram:
-```
-/status    → "3/5 levels complete. Visual QA: 94%. ETA: ~20 min."
-/pause     → Pauses all agents
-/approve   → Resumes execution
-```
-
-### 6. Schedule recurring QA
-```bash
-btc cron add "*/30 * * * *" "visual-qa-full"
-```
-
-## The Core Loop (Best-Score-Wins)
-
-This is BTC's key differentiator. Every other tool exits with the **latest** state. BTC exits with the **best** state.
-
-```rust
-loop {
-    // 1. Fence agents (pause all, wait for quiescence)
-    // 2. Git checkpoint (commit current state)
-    // 3. Execute next task
-    // 4. Binary gates: cargo test + cargo build
-    // 5. Gradient gates: screenshot → Claude vision score
-    // 6. Compare score_N vs best_score
-    // 7. If score_N < best_score - threshold → rollback
-    // 8. If score_N >= acceptance → break
-    // 9. After max_retries → exit with best checkpoint
-}
-```
-
-Why this matters: AI coding agents can make things **worse** during iteration. A CSS fix that aligns one component might break three others. Without gradient scoring and rollback, you accumulate visual regressions that pass every test.
 
 ## Configuration
 
 `.btc/config.toml`:
 ```toml
 [visual_qa]
-page_score_threshold = 90.0    # Score needed per page
-cross_page_threshold = 85.0    # Cross-page consistency minimum
-max_retries = 3                # Attempts before accepting best
-viewport = [1280, 720]         # Screenshot viewport
+page_score_threshold = 90.0
+cross_page_threshold = 85.0
+max_retries = 3
+viewport = [1280, 720]
 
 [sandbox]
 enabled = true
-network_policy = "permissive"  # "permissive" or "strict"
+network_policy = "permissive"
 
 [limits]
-# All optional — power-tool philosophy, no hard caps
 # max_concurrent_agents = 10
 # max_budget_usd = 50.0
-# max_iterations = 20
 
 [remote.telegram]
 bot_token = "your-bot-token"
 allowed_chat_ids = [123456789]
-
-[remote.slack]
-app_token = "xapp-..."
-bot_token = "xoxb-..."
-allowed_workspace_ids = ["T12345"]
-allowed_user_ids = ["U12345"]
 ```
 
-## Keyboard Shortcuts (TUI)
+## Keyboard Shortcuts
 
+### Interactive Menu
+| Input | Action |
+|-------|--------|
+| `/new <desc>` | Full pipeline: interview → plan → run |
+| `/run ralph` | Execute with ralph mode |
+| `/dash` | Open TUI dashboard |
+| `/skills` | List available skills |
+| Plain text | Ask Claude a question |
+
+### TUI Dashboard
 | Key | Action |
 |-----|--------|
-| `1-9` | Focus on agent by index |
-| `Tab` | Cycle through agents |
-| `g` | Grid view (up to 4 agents) |
-| `o` | Overview (table of all agents) |
-| `f` | Focus mode (single agent fullscreen) |
-| `t` | Topology (DAG progress) |
-| `?` | Toggle help |
-| `q` | Quit |
+| `1-4` | Switch tabs (Overview/Grid/DAG/Costs) |
+| `Tab` | Cycle agent selection |
+| `Enter` | Focus on selected agent |
+| `Esc` | Back / Exit |
+| `q` | Quit dashboard |
 
-## Security
-
-BTC takes security seriously:
-
-- **Kernel-enforced sandbox**: Every Claude Code agent runs under macOS `sandbox-exec` with a dynamically generated SBPL profile. File access is restricted to the project directory only.
-- **Defense-in-depth**: Rust-side path validation catches traversal attempts (`../../../etc/passwd`) and symlink escapes *before* the kernel sandbox layer.
-- **No shell injection**: Remote control commands are parsed as typed enums, never interpolated into shell strings. Shell metacharacters (`$`, `` ` ``, `|`, `;`) are rejected.
-- **Auth-gated remote control**: Telegram chat ID whitelist and Slack workspace+user ID verification.
-- **Tokens stay local**: `.btc/config.toml` is automatically `.gitignore`d.
-
-## Project Stats
-
-| Metric | Value |
-|--------|-------|
-| Language | Rust |
-| Binary size | 2.6 MB |
-| Source files | 94 |
-| Lines of code | 5,793 |
-| Modules | 18 |
-| Tests | 62 |
-| Dependencies | Optimized (tokio, ratatui, clap, serde, petgraph) |
-
-## Roadmap
-
-- [ ] Full headless browser integration (chromiumoxide/headless_chrome)
-- [ ] Live Claude Code `stream-json` event parsing
-- [ ] WhatsApp adapter via Twilio
-- [ ] Linux support (landlock sandbox)
-- [ ] `btc cleanup` — squash checkpoint commits
-- [ ] Web dashboard (axum SSE, React frontend)
-- [ ] Plugin system for custom generators (images, audio)
-- [ ] Cross-session performance baselines
+### Workspace (tmux)
+| Key | Action |
+|-----|--------|
+| `Ctrl+B ←→↑↓` | Switch panes |
+| `Ctrl+B z` | Zoom/fullscreen current pane |
+| `Ctrl+B q` | Show pane numbers |
 
 ## Contributing
-
-Contributions are welcome. BTC is built with a modular architecture — each of the 18 modules can be improved independently.
 
 ```bash
 git clone https://github.com/elcronos/btc.git
 cd btc
-cargo test          # 62 tests, all should pass
-cargo check         # Should compile with only warnings
+cargo test     # 62 tests
+cargo build    # Should compile with warnings only
 ```
 
-Key areas where help is needed:
-- **Headless browser integration** — replacing placeholders in `src/visual_qa/browser.rs`
-- **Claude Code stream parsing** — documenting the `--output-format stream-json` event schema
-- **Telegram/Slack adapters** — wiring `teloxide` and `slack-morphism` into the daemon
-- **Linux sandbox** — implementing `Sandbox` trait with landlock
+Key areas for contribution:
+- **Headless browser** — Chrome CDP integration in `src/visual_qa/browser.rs`
+- **Visual scoring** — Vision-based scoring in `src/visual_qa/scorer.rs`
+- **Telegram/Slack** — Wire adapters in `src/remote/`
+- **Linux sandbox** — Implement `Sandbox` trait with landlock
+- **Parallel execution** — True parallel task dispatch in the executor
 
 ## License
 
@@ -294,9 +420,7 @@ MIT
 
 ## Acknowledgments
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic — the brain
-- [oh-my-claudecode](https://github.com/yeachan-heo/oh-my-claudecode) — the inspiration for skills, hooks, and orchestration patterns
-- [AgentPeek](https://github.com/user/agentpeek) — the inspiration for observability
-- [OpenClaw](https://openclaw.ai/) — the inspiration for 24/7 remote agent control
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic — the AI engine
+- [oh-my-claudecode](https://github.com/yeachan-heo/oh-my-claudecode) — skills, hooks, and execution modes (autopilot, ralph, ultrawork)
 - [ratatui](https://ratatui.rs/) — terminal UI framework
-- [petgraph](https://docs.rs/petgraph) — graph data structures for DAG execution
+- [petgraph](https://docs.rs/petgraph) — DAG execution graph
