@@ -387,12 +387,12 @@ fn render_claude_placeholder(frame: &mut Frame, area: Rect) {
         )),
         Line::from(""),
         Line::from(Span::styled(
-            "         Claude will open in this terminal with full permissions.",
-            Style::default().fg(Color::Gray),
+            "         Claude opens in a split pane alongside this dashboard.",
+            Style::default().fg(Color::White),
         )),
         Line::from(Span::styled(
-            "         When you exit Claude (Ctrl+C or /exit), you'll return here.",
-            Style::default().fg(Color::Gray),
+            "         Use Ctrl+B + arrow keys to switch between panes.",
+            Style::default().fg(Color::White),
         )),
         Line::from(""),
         Line::from(Span::styled(
@@ -641,23 +641,45 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
         if app.launch_claude {
             app.launch_claude = false;
 
-            // Exit TUI temporarily
-            disable_raw_mode()?;
-            execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-            terminal.show_cursor()?;
+            let in_tmux = std::env::var("TMUX").is_ok();
+            let dir = app.project_dir.display().to_string();
 
-            // Launch real Claude Code
-            let _ = Command::new("claude")
-                .arg("--permission-mode")
-                .arg("bypassPermissions")
-                .current_dir(&app.project_dir)
-                .status();
+            if in_tmux {
+                // Split current tmux pane and run Claude there
+                let _ = Command::new("tmux")
+                    .args([
+                        "split-window", "-h", "-p", "55",
+                        "-c", &dir,
+                        "claude", "--permission-mode", "bypassPermissions",
+                    ])
+                    .status();
+                // Stay in the dashboard, switch to observability to monitor
+                app.tab = Tab::Observability;
+            } else {
+                // Not in tmux — create a tmux session with both
+                let session = format!("btc-{}", app.project_name);
+                let _ = Command::new("tmux")
+                    .args(["new-session", "-d", "-s", &session, "-c", &dir,
+                           "btc"])  // left pane: dashboard
+                    .status();
+                let _ = Command::new("tmux")
+                    .args(["split-window", "-t", &session, "-h", "-p", "55",
+                           "-c", &dir,
+                           "claude", "--permission-mode", "bypassPermissions"])
+                    .status();
+                let _ = Command::new("tmux")
+                    .args(["select-pane", "-t", &format!("{}:0.0", session)])
+                    .status();
 
-            // Re-enter TUI
-            execute!(io::stdout(), EnterAlternateScreen)?;
-            enable_raw_mode()?;
-            terminal.clear()?;
-            app.tab = Tab::Overview;
+                // Exit current dashboard and attach to the tmux session
+                disable_raw_mode()?;
+                execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                terminal.show_cursor()?;
+                let _ = Command::new("tmux")
+                    .args(["attach-session", "-t", &session])
+                    .status();
+                return Ok(());
+            }
             continue;
         }
 
