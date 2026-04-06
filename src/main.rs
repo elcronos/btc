@@ -605,10 +605,8 @@ async fn main() -> error::BtcResult<()> {
     let project_dir = std::env::current_dir()?;
 
     if args.len() <= 1 {
-        if std::env::var("TMUX").is_ok() {
-            return interactive_mode(project_dir).await;
-        }
-        match workspace::launch_workspace(&project_dir) {
+        // Default: launch the unified TUI dashboard
+        match tui::run_dashboard(&project_dir) {
             Ok(_) => return Ok(()),
             Err(_) => return interactive_mode(project_dir).await,
         }
