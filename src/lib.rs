@@ -7,6 +7,7 @@ pub mod sandbox;
 pub mod state;
 pub mod skills;
 pub mod hooks;
+pub mod observer;
 pub mod orchestrator;
 pub mod tui;
 pub mod visual_qa;

@@ -186,7 +186,10 @@ impl DagPlanner {
                 TaskType::Scaffold => {
                     "Create the project directory structure, initialize package manager (package.json, Cargo.toml, etc.), \
                      install dependencies, and create configuration files. Write all files to disk. \
-                     Set up the build system so the project can compile/run."
+                     Set up the build system so the project can compile/run.\n\n\
+                     You MUST also create these files:\n\
+                     1. AGENTS.md — AI-readable documentation explaining the project structure, key files, how to work in the codebase, testing requirements, and common patterns. This helps AI agents understand the project.\n\
+                     2. README.md — Human-readable documentation with: project name, description, how to install dependencies, how to run the project, how to run tests, and a brief architecture overview."
                 }
                 TaskType::Code => {
                     "Implement the code for this component. Write all source files to disk. \
@@ -208,7 +211,8 @@ impl DagPlanner {
                 TaskType::Polish => {
                     "Final review and polish. Clean up code formatting, add missing comments where needed, \
                      ensure all files are consistent. Verify the project builds and runs correctly. \
-                     Do a final check against the spec requirements."
+                     Do a final check against the spec requirements.\n\
+                     Ensure AGENTS.md and README.md exist and are accurate. Update them if the project structure has changed during implementation."
                 }
             };
 

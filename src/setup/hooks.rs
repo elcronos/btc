@@ -5,7 +5,7 @@ use crate::error::BtcResult;
 pub struct HookInstaller;
 
 impl HookInstaller {
-    /// Install hook configuration placeholder.
+    /// Install hook configuration placeholder and event logging script.
     pub fn install(project_dir: &Path) -> BtcResult<()> {
         let hooks_dir = project_dir.join(".btc").join("hooks");
         std::fs::create_dir_all(&hooks_dir)?;
@@ -30,6 +30,18 @@ Each hook receives environment variables:
 Hooks must be executable (`chmod +x`).
 "#;
             std::fs::write(&readme_path, contents)?;
+        }
+
+        // Write the event logging hook script
+        let hook_script = "#!/bin/bash\nEVENT_LOG=\"$(pwd)/.btc/agent-events.jsonl\"\ncat | jq -c '. + {\"timestamp\": (now | todate)}' >> \"$EVENT_LOG\" 2>/dev/null\n";
+        let script_path = hooks_dir.join("on-event.sh");
+        if !script_path.exists() {
+            std::fs::write(&script_path, hook_script)?;
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                std::fs::set_permissions(&script_path, std::fs::Permissions::from_mode(0o755))?;
+            }
         }
 
         Ok(())

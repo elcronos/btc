@@ -13,8 +13,9 @@ use ratatui::widgets::{Block, Borders, Paragraph, Tabs, Wrap};
 use crate::error::BtcResult;
 use crate::types::{AgentId, AgentSnapshot, AgentStatus, MetricsSnapshot};
 
-use super::views::{render_focus, render_grid, render_overview, render_topology};
+use super::views::{render_agent_tree, render_focus, render_grid, render_overview};
 use super::widgets::cost_tracker::render_cost;
+use crate::observer::estimate_usage;
 
 /// Scan system for running `claude` processes and return as agent snapshots.
 fn scan_claude_processes() -> Vec<AgentSnapshot> {
@@ -195,6 +196,7 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
         let (dag_completed, dag_total) = read_dag_state(project_dir);
 
         let total_cost: f64 = agents.iter().map(|a| a.cost).sum();
+        let (total_events, _tool_uses) = estimate_usage(project_dir);
         let metrics = MetricsSnapshot {
             total_agents: agents.len(),
             running_agents: agents.iter().filter(|a| a.status == AgentStatus::Running).count(),
@@ -271,7 +273,7 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
                         render_grid(frame, chunks[1], &agents);
                     }
                     Tab::Topology => {
-                        render_topology(frame, chunks[1], dag_completed, dag_total);
+                        render_agent_tree(frame, chunks[1], project_dir, dag_completed, dag_total);
                     }
                     Tab::Costs => {
                         render_cost(frame, chunks[1], total_cost, &agents);
@@ -286,9 +288,10 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
                 " 1-4: tabs │ Tab: select │ Enter: focus │ q: quit │ Refreshing every 2s "
             };
             let status_line = format!(
-                " Agents: {}  Running: {}  Cost: ${:.4}  Uptime: {:.0}s ",
+                " Agents: {}  Running: {}  Events: {}  Cost: ${:.4}  Uptime: {:.0}s ",
                 metrics.total_agents,
                 metrics.running_agents,
+                total_events,
                 metrics.total_cost,
                 metrics.elapsed_secs,
             );

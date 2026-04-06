@@ -6,4 +6,4 @@ mod topology;
 pub use focus::render_focus;
 pub use grid::render_grid;
 pub use overview::render_overview;
-pub use topology::render_topology;
+pub use topology::render_agent_tree;

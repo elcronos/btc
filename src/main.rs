@@ -9,6 +9,7 @@ mod error;
 mod hooks;
 mod interview;
 mod notifications;
+mod observer;
 mod orchestrator;
 mod remote;
 mod sandbox;
@@ -178,7 +179,44 @@ async fn interactive_mode(project_dir: PathBuf) -> error::BtcResult<()> {
             s if s.starts_with("/run") => {
                 // Parse optional mode: /run, /run ralph, /run ultrawork, etc.
                 let mode_str = s.strip_prefix("/run").unwrap_or("").trim();
-                let mode = parse_exec_mode(mode_str);
+
+                let mut mode = if mode_str.is_empty() {
+                    // Show mode picker
+                    println!("  {} Select execution mode:", "⚡".bold());
+                    println!();
+                    println!("  {}  {} — Sequential DAG execution", "1".cyan().bold(), "default");
+                    println!("  {}  {} — Autonomous end-to-end", "2".cyan().bold(), "autopilot");
+                    println!("  {}  {} — Loop with verification until done", "3".cyan().bold(), "ralph");
+                    println!("  {}  {} — Parallel high-throughput", "4".cyan().bold(), "ultrawork");
+                    println!("  {}  {} — Deep analysis before execution", "5".cyan().bold(), "deep-interview");
+                    println!();
+                    print!("  {} Choice [1-5]: ", "→".green().bold());
+                    io::stdout().flush().ok();
+
+                    let mut choice = String::new();
+                    io::stdin().read_line(&mut choice).ok();
+                    match choice.trim() {
+                        "1" | "" => None,
+                        "2" => Some(cli::ExecMode::Autopilot),
+                        "3" => Some(cli::ExecMode::Ralph),
+                        "4" => Some(cli::ExecMode::Ultrawork),
+                        "5" => Some(cli::ExecMode::DeepInterview),
+                        other => parse_exec_mode(other),
+                    }
+                } else {
+                    parse_exec_mode(mode_str)
+                };
+
+                // Check if first run (no completed plans in state)
+                let state_dir = project_dir.join(".btc").join("state");
+                let is_first_run = !state_dir.join("last-run.json").exists();
+
+                if is_first_run {
+                    println!("  {} First run detected — running deep analysis before execution.", "ℹ".blue());
+                    if mode.is_none() {
+                        mode = Some(cli::ExecMode::DeepInterview);
+                    }
+                }
 
                 if let Some(ref m) = mode {
                     println!("  {} Mode: {}", "⚡".bold(), m.label().cyan().bold());
@@ -188,7 +226,23 @@ async fn interactive_mode(project_dir: PathBuf) -> error::BtcResult<()> {
                 match find_latest_file(&plans_dir, "plan-", ".json") {
                     Some(plan) => {
                         match run_execute_with_mode(&project_dir, plan, false, mode.as_ref()).await {
-                            Ok(_) => {}
+                            Ok(_) => {
+                                // Write first-run marker after successful execution
+                                std::fs::create_dir_all(&state_dir).ok();
+                                std::fs::write(
+                                    state_dir.join("last-run.json"),
+                                    format!("{{\"timestamp\":\"{}\"}}", chrono::Utc::now().to_rfc3339())
+                                ).ok();
+
+                                // Show event count if log exists
+                                let event_log = project_dir.join(".btc").join("agent-events.jsonl");
+                                if event_log.exists() {
+                                    let line_count = std::fs::read_to_string(&event_log)
+                                        .map(|c| c.lines().count())
+                                        .unwrap_or(0);
+                                    println!("  {} Events tracked: {}", "📊".dimmed(), line_count);
+                                }
+                            }
                             Err(e) => println!("{} {}", "✗".red(), e),
                         }
                     }
