@@ -285,40 +285,40 @@ fn render_overview(frame: &mut Frame, area: Rect, app: &DashApp) {
     let info_lines = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("  Project  ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  Project  ", Style::default().fg(Color::Gray)),
             Span::styled(&app.project_name, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-            Span::styled("  │  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Specs ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  ", Style::default().fg(Color::Gray)),
+            Span::styled("Specs ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.spec_count), Style::default().fg(if app.spec_count > 0 { Color::Green } else { Color::DarkGray })),
-            Span::styled("  │  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Plans ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  ", Style::default().fg(Color::Gray)),
+            Span::styled("Plans ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.plan_count), Style::default().fg(if app.plan_count > 0 { Color::Green } else { Color::DarkGray })),
-            Span::styled("  │  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Skills ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  ", Style::default().fg(Color::Gray)),
+            Span::styled("Skills ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.skill_count), Style::default().fg(Color::Yellow)),
         ]),
         Line::from(vec![
-            Span::styled("  Agents   ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  Agents   ", Style::default().fg(Color::Gray)),
             Span::styled(format!("● {} running", running_count), Style::default().fg(if running_count > 0 { Color::Green } else { Color::DarkGray })),
-            Span::styled("  │  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Events ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  ", Style::default().fg(Color::Gray)),
+            Span::styled("Events ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.total_events), Style::default().fg(Color::Yellow)),
-            Span::styled("  │  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Tools ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  ", Style::default().fg(Color::Gray)),
+            Span::styled("Tools ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.tool_uses), Style::default().fg(Color::Yellow)),
         ]),
         Line::from(""),
         Line::from(Span::styled(
             "  Commands: /new <desc> │ /plan │ /run [mode] │ /skills │ /status │ /quit",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(Span::styled(
             "  Modes:   default │ autopilot │ ralph │ ultrawork │ deep-interview",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(Span::styled(
             "  Press 2 for Claude │ 3 for Observability │ Type commands below",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(""),
     ];
@@ -329,7 +329,7 @@ fn render_overview(frame: &mut Frame, area: Rect, app: &DashApp) {
                 .borders(Borders::ALL)
                 .title(" ⚡ BTC Overview ")
                 .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         );
     frame.render_widget(info, chunks[0]);
 
@@ -338,7 +338,7 @@ fn render_overview(frame: &mut Frame, area: Rect, app: &DashApp) {
     if app.cmd_output.is_empty() {
         output_lines.push(Line::from(Span::styled(
             "  Ready. Type a command below or press 2 to open Claude.",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )));
     } else {
         for line in app.cmd_output.iter().rev().take(20).rev() {
@@ -354,7 +354,7 @@ fn render_overview(frame: &mut Frame, area: Rect, app: &DashApp) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Output ")
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         )
         .wrap(Wrap { trim: false });
     frame.render_widget(output, chunks[1]);
@@ -388,20 +388,20 @@ fn render_claude_placeholder(frame: &mut Frame, area: Rect) {
         Line::from(""),
         Line::from(Span::styled(
             "         Claude will open in this terminal with full permissions.",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(Span::styled(
             "         When you exit Claude (Ctrl+C or /exit), you'll return here.",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(""),
         Line::from(Span::styled(
             "         Project: current directory",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
         Line::from(Span::styled(
             "         Mode: bypassPermissions (full tool access)",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )),
     ];
 
@@ -411,7 +411,7 @@ fn render_claude_placeholder(frame: &mut Frame, area: Rect) {
                 .borders(Borders::ALL)
                 .title(" Claude Code ")
                 .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         );
     frame.render_widget(p, area);
 }
@@ -439,7 +439,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" DAG Progress ")
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         )
         .gauge_style(Style::default().fg(Color::Cyan).bg(Color::DarkGray))
         .ratio(ratio.min(1.0))
@@ -452,12 +452,12 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
     if app.process_agents.is_empty() && app.tracked_agents.is_empty() {
         lines.push(Line::from(Span::styled(
             "  No Claude agents running on this machine.",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )));
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
             "  Start a task with:  btc run --mode ralph",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(Color::Gray),
         )));
     } else {
         // Live processes (system-wide)
@@ -470,7 +470,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
             )));
             lines.push(Line::from(Span::styled(
                 "  ─────────────────────────────────────────────────────────",
-                Style::default().fg(Color::DarkGray),
+                Style::default().fg(Color::Gray),
             )));
 
             let total_live = app.process_agents.len();
@@ -502,7 +502,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
                     ),
                     Span::styled(
                         format!("  pid:{}", agent.pid),
-                        Style::default().fg(Color::DarkGray),
+                        Style::default().fg(Color::White),
                     ),
                     Span::styled(
                         format!("  ⏱ {}", agent.duration),
@@ -523,7 +523,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
             )));
             lines.push(Line::from(Span::styled(
                 "  ─────────────────────────────────────────────────────────",
-                Style::default().fg(Color::DarkGray),
+                Style::default().fg(Color::Gray),
             )));
 
             let running: Vec<&TrackedAgent> = app
@@ -574,7 +574,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
                     Span::styled(format!("[{}]", label), Style::default().fg(color)),
                     Span::styled(
                         format!("  calls: {}", agent.tools_used.len()),
-                        Style::default().fg(Color::DarkGray),
+                        Style::default().fg(Color::Gray),
                     ),
                     Span::styled(last_tool, Style::default().fg(Color::Yellow)),
                 ]));
@@ -588,7 +588,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
                 .borders(Borders::ALL)
                 .title(" Agent Topology ")
                 .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         )
         .wrap(Wrap { trim: false });
     frame.render_widget(topology, chunks[1]);
@@ -600,14 +600,14 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
     let stats_lines = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("  Live ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  Live ", Style::default().fg(Color::Gray)),
             Span::styled(format!("● {}", running), Style::default().fg(Color::Green)),
-            Span::styled("  │  Tracked ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  Tracked ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{} total", tracked), Style::default().fg(Color::White)),
             Span::styled(format!(" ({} done)", tracked_done), Style::default().fg(Color::Blue)),
-            Span::styled("  │  Events ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  Events ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.total_events), Style::default().fg(Color::Yellow)),
-            Span::styled("  │  Tools ", Style::default().fg(Color::DarkGray)),
+            Span::styled("  │  Tools ", Style::default().fg(Color::Gray)),
             Span::styled(format!("{}", app.tool_uses), Style::default().fg(Color::Yellow)),
         ]),
         Line::from(""),
@@ -618,7 +618,7 @@ fn render_observability(frame: &mut Frame, area: Rect, app: &DashApp) {
             Block::default()
                 .borders(Borders::ALL)
                 .title(" Stats ")
-                .border_style(Style::default().fg(Color::DarkGray)),
+                .border_style(Style::default().fg(Color::Gray)),
         );
     frame.render_widget(stats, chunks[2]);
 }
@@ -688,10 +688,10 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
                         .borders(Borders::ALL)
                         .title(format!(" ⚡ BTC — {} ", app.project_name))
                         .title_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-                        .border_style(Style::default().fg(Color::DarkGray)),
+                        .border_style(Style::default().fg(Color::Gray)),
                 )
                 .select(tab_index)
-                .style(Style::default().fg(Color::DarkGray))
+                .style(Style::default().fg(Color::Gray))
                 .highlight_style(
                     Style::default()
                         .fg(Color::Cyan)
@@ -719,14 +719,14 @@ pub fn run_dashboard(project_dir: &Path) -> BtcResult<()> {
                     ),
                     Style::default().fg(Color::Cyan),
                 ),
-                Span::styled("│ ", Style::default().fg(Color::DarkGray)),
+                Span::styled("│ ", Style::default().fg(Color::Gray)),
                 Span::styled(
                     match app.tab {
                         Tab::Overview => "Type command + Enter │ 1-3: tabs │ q: quit",
                         Tab::Claude => "Enter: launch Claude │ 1-3: tabs │ Esc: back",
                         Tab::Observability => "Auto-refreshes every 2s │ 1-3: tabs │ q: quit",
                     },
-                    Style::default().fg(Color::DarkGray),
+                    Style::default().fg(Color::Gray),
                 ),
             ]);
             frame.render_widget(Paragraph::new(status), chunks[2]);
